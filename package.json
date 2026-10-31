@@ -1,0 +1,1 @@
+{"name":"@vslices/enactment-playground","private":true,"version":"0.1.0","type":"module","scripts":{"build":"tsc && mkdir -p site/assets && cp index.html styles.css CNAME site/ && cp dist/*.js site/assets/","test":"node --test tests/*.mjs","check":"npm run build && npm test"},"devDependencies":{"typescript":"^5.9.3"}}
