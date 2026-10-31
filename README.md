@@ -35,9 +35,24 @@ npm run check
 python3 -m http.server -d site 8080
 ```
 
-## GitHub Pages
+## GitHub Pages and public route
 
-CI validates before deploying the `site/` artifact from `main`. Intended custom domain: `enactment.vslices.alive-lab.dev`. Pages and DNS must be configured by the organization. This repository is private; verify Pages access and publishing eligibility.
+The repository is public. The workflow builds and publishes static output from `main` to its **own** GitHub Pages origin (when Pages is enabled). The application uses relative asset URLs and therefore can be hosted under a subpath.
+
+**Canonical public URL (proposed):** `https://vslices.alive-lab.dev/playground/enactment/`
+
+Do **not** configure `enactment.vslices.alive-lab.dev` as a CNAME: under a standard Cloudflare full DNS setup, Universal SSL does not cover that deeper hostname.
+
+Publishing this repository to GitHub Pages **does not automatically install a route** on `vslices.alive-lab.dev`. The hosting authority for that domain must either:
+
+1. Import the built `site/` output into its static site at `/playground/enactment/`, retaining ownership of the route and static assets; or
+2. Route this path and its assets to a separately hosted origin through a verified reverse proxy / Cloudflare Worker. This requires explicit host routing and asset-path validation.
+
+The first option is the simpler default if the VSlices site is generated from a static deployment. Confirm the actual site repository and hosting mechanism before changing production routing.
+
+The `the-alive-lab/index` repository contains `public-surfaces.md`, an **orientation document** favoring low-cost static publication; it does **not** establish that this repository hosts or routes the existing VSlices website.
+
+Check the canonical route with the trailing slash, CSS and JS asset loading, direct refresh and browser navigation after the host integrates it. There is currently **no claim** that the canonical path serves this app.
 
 ## Important limits
 
