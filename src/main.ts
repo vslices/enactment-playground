@@ -31,10 +31,19 @@ function render(){
  select.replaceChildren(...state.repos.map(r=>new Option(r.name,r.id)));
  get('repos').innerHTML=state.repos.length?state.repos.map(r=>{
  const versions=state.versions.filter(v=>v.repo===r.id);
+ const observations=state.versions.filter(v=>v.repo===r.id);
+ const current=state.deployed[r.id];
+ const observed=state.observations[r.id]??0;
+ const observeForm=`<form data-observe="${esc(r.id)}" class="version-form"><label>Revisión observada en el ambiente<select name="revision">
+ <option value="">Ausente</option>
+ ${observations.map(v=>`<option value="${esc(v.id)}" ${current===v.id?'selected':''}>${esc(v.name)}</option>`).join('')}</select></label>
+ <label>Salud<select name="healthy"><option value="true">Healthy</option><option value="false">Unhealthy</option></select></label>
+ <label>Número de observación<input name="sequence" type="number" min="1" value="${observed+1}" required></label>
+ <button>Notificar estado</button></form>`;
  const details=expanded===r.id?`<form data-repo="${esc(r.id)}" class="version-form"><label>Nombre de versión<input name="version" required placeholder="v1.0.0"></label>
  ${r.dependencies.map(d=>`<label>${esc(state.repos.find(x=>x.id===d)?.name??d)} — revisión requerida<select required name="dep:${esc(d)}"><option value="">Seleccionar...</option>${state.versions.filter(v=>v.repo===d).map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('')}</select></label>`).join('')}
  <button class="primary">Crear candidato</button></form>`:'';
- return `<article class="card"><h3>${esc(r.name)}</h3><p class="caption muted">Dependencias: ${r.dependencies.length?r.dependencies.map(d=>`<span class="pill">${esc(state.repos.find(x=>x.id===d)?.name??d)}</span>`).join(''):'ninguna'}</p><p class="caption muted">${versions.length} versiones</p><button data-expand="${esc(r.id)}">+ Nueva versión</button>${details}</article>`;
+ return `<article class="card"><h3>${esc(r.name)}</h3><p class="caption muted">Dependencias: ${r.dependencies.length?r.dependencies.map(d=>`<span class="pill">${esc(state.repos.find(x=>x.id===d)?.name??d)}</span>`).join(''):'ninguna'}</p><p class="caption muted">${versions.length} versiones</p><button data-expand="${esc(r.id)}">+ Nueva versión / observar</button>${details}${expanded===r.id?observeForm:''}</article>`;
  }).join(''):'<p class="muted">Agrega repositorios o carga Landing.</p>';
  get('versions').innerHTML=state.versions.map(renderVersion).join('')||'<p class="muted">No hay candidatos todavía.</p>';
  get('events').innerHTML=state.log.map((l,i)=>`<li><span class="ok">${String(i+1).padStart(2,'0')}</span> · ${esc(l)}</li>`).reverse().join('');
@@ -59,6 +68,14 @@ get('repos').addEventListener('submit',e=>{
  for(const d of repo.dependencies)requires[d]=(f.elements.namedItem('dep:'+d) as HTMLSelectElement).value;
  dispatch({type:'version',id:newId(),repo:repo.id,name,requires});
  if(!get('notice').textContent){expanded=null;render()}
+});
+get('repos').addEventListener('submit',e=>{
+ const f=(e.target as Element).closest<HTMLFormElement>('[data-observe]');if(!f)return;
+ e.preventDefault();e.stopPropagation();
+ const revision=(f.elements.namedItem('revision') as HTMLSelectElement).value||null;
+ const healthy=(f.elements.namedItem('healthy') as HTMLSelectElement).value==='true';
+ const sequence=Number((f.elements.namedItem('sequence') as HTMLInputElement).value);
+ dispatch({type:'observe',repo:f.dataset.observe!,revision,healthy,sequence});
 });
 get('versions').addEventListener('click',e=>{
  const b=(e.target as Element).closest<HTMLElement>('[data-act]');if(!b)return;
