@@ -2,7 +2,7 @@ export type Test = 'pending'|'passed'|'failed';
 export type Publish = 'idle'|'blocked'|'queued'|'deploying'|'failed'|'published';
 export type Repo = { id:string; name:string; dependencies:string[] };
 export type Version = {id:string; repo:string; name:string; requires:Record<string,string>; test:Test; publish:Publish; attempts:number};
-export type State = {repos:Repo[]; versions:Version[]; deployed:Record<string,string>; unhealthy:string[]; log:string[]};
+export type State = {repos:Repo[]; versions:Version[]; deployed:Record<string,string>; unhealthy:string[]; observations:Record<string,number>; log:string[]};
 export type Event =
  | {type:'repo';id:string;name:string;dependencies:string[]}
  | {type:'version';id:string;repo:string;name:string;requires:Record<string,string>}
@@ -10,8 +10,9 @@ export type Event =
  | {type:'try';id:string}
  | {type:'start';id:string}
  | {type:'finish';id:string;success:boolean}
- | {type:'health';id:string;healthy:boolean};
-export const initial=():State=>({repos:[],versions:[],deployed:{},unhealthy:[],log:[]});
+ | {type:'health';id:string;healthy:boolean}
+ | {type:'observe';repo:string;revision:string|null;healthy:boolean;sequence:number};
+export const initial=():State=>({repos:[],versions:[],deployed:{},unhealthy:[],observations:{},log:[]});
 export const version=(s:State,id:string)=>s.versions.find(v=>v.id===id);
 export function blockers(s:State,v:Version):string[]{
  const problems:string[]=[];
@@ -59,21 +60,41 @@ export function reduce(before:State,event:Event):State {
  }
  case 'start':{const v=get(event.id);ensure(v.publish==='queued','Sin intento en cola');ensure(eligible(s,v),'Cambió el ambiente');v.publish='deploying';log(v.name+': despliegue iniciado');break}
  case 'finish':{
-  const v=get(event.id);ensure(v.publish==='deploying','No está desplegándose');
+  const v=get(event.id);
+  if((event.success&&v.publish==='published')||(!event.success&&v.publish==='failed'))return before;
+  ensure(v.publish==='deploying','No está desplegándose');
   if(event.success)ensure(eligible(s,v),'Cambió el ambiente');
   v.publish=event.success?'published':'failed';
-  if(event.success)s.deployed[v.repo]=v.id;
+  if(event.success){s.deployed[v.repo]=v.id;s.observations[v.repo]=(s.observations[v.repo]??0)+1;}
   log(v.name+': Railway '+(event.success?'SUCCESS':'FAILED'));break;
  }
  case 'health':{
   const v=get(event.id);
+  if(s.deployed[v.repo]!==v.id){log(v.name+': salud ignorada; no es la revisión observada');break}
   s.unhealthy=event.healthy?s.unhealthy.filter(x=>x!==v.id):[...new Set([...s.unhealthy,v.id])];
   log(v.name+': '+(event.healthy?'healthy':'unhealthy'));break;
  }
+ case 'observe':{
+  ensure(s.repos.some(r=>r.id===event.repo),'Repositorio desconocido');
+  if(event.sequence<=(s.observations[event.repo]??0)){log('Notificación antigua o duplicada ignorada: '+event.repo+' #'+event.sequence);break}
+  if(event.revision!==null)ensure(version(s,event.revision)?.repo===event.repo,'Revisión observada inválida');
+  const old=s.deployed[event.repo];
+  if(old)s.unhealthy=s.unhealthy.filter(x=>x!==old);
+  if(event.revision===null)delete s.deployed[event.repo];
+  else{
+   s.deployed[event.repo]=event.revision;
+   if(!event.healthy)s.unhealthy.push(event.revision);
+  }
+  s.observations[event.repo]=event.sequence;
+  log(event.repo+': observación #'+event.sequence+' → '+(event.revision??'ausente')+(event.healthy?' healthy':' unhealthy'));break;
  }
- if((event.type==='finish'&&event.success)||event.type==='health'){
-  for(const v of s.versions)if(v.publish==='blocked'&&eligible(s,v)){
-   v.publish='queued';v.attempts++;log(v.name+': dependencia disponible; solo try-deploy-railway #'+v.attempts);
+ }
+ if((event.type==='finish'&&event.success)||event.type==='health'||event.type==='observe'){
+  for(const v of s.versions){
+   if(v.publish==='queued'&&!eligible(s,v)){v.publish='blocked';log(v.name+': autorización de publicación revocada — '+blockers(s,v).join(', '))}
+   else if(v.publish==='blocked'&&eligible(s,v)){
+    v.publish='queued';v.attempts++;log(v.name+': dependencia disponible; solo try-deploy-railway #'+v.attempts);
+   }
   }
  }
  return s;
