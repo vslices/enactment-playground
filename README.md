@@ -22,7 +22,7 @@ Reusable, revisable procedure: [vslices/protocols — Enactment PR #5](https://g
 2. Publish Identity I1: Landing still blocked by missing Accounts.
 3. Publish Accounts A1: one Landing deploy attempt is queued without rerunning tests.
 4. Mismatched or unhealthy revisions block publication.
-5. Next iterations: duplicate/out-of-order events, concurrency, lifecycle evidence freshness.
+5. **This iteration:** manually observe revisions, health and sequence numbers in each repository; invalidates queued authorization when dependency status drifts, and ignores duplicate or older observations. Concurrency across independent workers and authoritative remote attestation are not implemented yet.
 6. Eventually connect real infrastructure adapters in owning repositories, not in this public web app.
 
 ## Run
