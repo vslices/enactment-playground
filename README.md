@@ -1,48 +1,52 @@
 # VSlices Enactment Playground
 
-**MVP 01: Landing conditional publication** — browser-only, static, deterministic. No real GitHub Actions, Railway API, credentials or deployments are executed by the app.
+Browser-only, reversible simulation of architectural decisions. **No GitHub Actions, Railway, SQL Server or deployment effects** are performed.
 
-The initial scenario demonstrates why Landing L2, with passing `test.yml`, remains **blocked** until the exact versions Identity I1 and Accounts A1 are published and healthy. Publishing the final dependency queues **only** `try-deploy-railway` for Landing; no tests are re-run.
+## Default: Landing Composition promotion (2026-11-01)
 
-## UI
+The default scenario reproduces a bounded subset of the **documented, not yet fully implemented** Landing Composition operational decision:
 
-- **Overview:** Railway-canvas-inspired three-repository topology, actual VSlices mark from [vslices/icons](https://github.com/vslices/icons/blob/main/official/icon.svg), and primary purple `#9C2FA0`. Each repo can create a version, simulate test outcome, try publishing, start a queued deploy, mark success/failure or record a dependency observation.
-- **Raw Config:** JSON scenario topology for the three known Landing repositories, plus a separate editable **Raw Interactions** JSON log. Both validate before applying and share one replay model.
-- **History:** step back/forward, jump to any interaction, or take a new action from the past (discarding only the prior redo tail in this local simulation).
-- **Share:** document version, config, interactions and cursor are encoded as compressed URL-safe JSON in the URL hash. Edits update the hash using `history.replaceState`; no server-side persistence.
+[Landing Composition — desarrollo, verificación y promoción](https://github.com/atom-dev-serviu/landing-composition/blob/64c0c4996e39c9abe9d8e07fb7e354a8c6cde98f/docs/ci-cd-composition-promotion-decision-2026-11-01.md)
 
-A successful deployment observation and its resulting automatic re-evaluations are different from the input interaction that triggered them. Overview's event log is a **derived projection**, not a second authoritative history.
+### Operational boundaries
 
-## Try the MVP
+- Owners (\`identity-service\`, \`account-service\`, \`landing-product\`) validate their own behavior with functional \`test-linux.yml\` and own the technical publication mechanism. Their PRs and \`main\` do **not** independently trigger publication.
+- \`landing-composition\` coordinates the exact participating revisions (gitlinks in the real system), Linux transversal E2E/SQL evidence, and Windows/IIS-specific regression evidence for interactive products. Not every service requires Windows tests.
+- Merge applicable owner PRs **before** Composition, preserving tested exact revisions and verifying evidence validity after merge. An altered merge tree invalidates reused evidence in this simple simulator.
+- Only Composition/main with complete passing evidence authorizes a \`request-promotion\` simulation for **QA interno**; eligibility alone does not issue effects.
+- Owners execute authorized requests and report observed terminal status and exact deployed revision. Missing, incompatible or unhealthy dependency revisions block Landing. Dependency observations re-evaluate **publication only**, not CI.
+- QA Serviu and PROD are **manual** and are not automated by this simulator.
+- Evidence is illustrative user-entered data; the simulator does not verify real Git provenance, runner configuration, approvals or IIS fidelity.
 
-The starter document already has three candidates and passing simulated CI for I1, A1, L2, followed by one blocked Landing publication attempt:
+### Reproduction
 
-1. Under Identity I1, choose **Intentar publish.yml** → **Iniciar deploy** → **SUCCESS**.
-2. Landing remains blocked on Accounts.
-3. Do the same for Accounts A1; Landing's previous evidence automatically queues one `try-deploy-railway` attempt.
-4. Start and complete Landing L2. Use the history slider to rewind, or **Copiar enlace** to reproduce the exact point in a new browser.
-5. For an incompatible/unhealthy variant, create a new Identity revision or use **Observar** to change the observed revision/health.
+In **Overview**, interact with the Composition card and the three participant cards. Use **Restablecer ejemplo** for candidates/PR CI evidence without deployment, or **Desde cero** to build a new linear history. Example sequence:
 
-Revisable protocol and scope: [vslices/protocols PR #5](https://github.com/vslices/protocols/pull/5), `enactment/mvp-landing.md`.
+1. Merge Identity, Accounts, Landing (each owner's PR validation is already simulated as green).
+2. Merge Composition (its simulated Linux E2E and Windows/IIS tests are already green).
+3. **Evaluar evidencia** on Composition: the decision becomes \`eligible\`; no publication is queued yet.
+4. **Solicitar QA interno** from Composition.
+5. Start and complete authorized Identity and Accounts publications, observing \`SUCCESS\` and the exact versions; Landing becomes queued without repeating tests.
+6. Start and complete Landing publication. Inspect raw inputs, derived logs, the history cursor and the shareable URL.
 
-## Run locally
+Try merging a different tree, an inconclusive Windows result, or an incompatible observed Identity revision to see why promotion is blocked. If a merge changes a tree, re-run the necessary simulated test for that same tree before evaluation.
 
-Node.js 22 or newer:
+The two tabs remain **Overview** and **Raw Config**. The latter contains separate editors for **Raw Config** and **Raw Interactions**. The current state is a deterministic replay of the interaction prefix selected by the cursor. Interactions are local browser simulation; real infrastructure is never contacted.
 
-```sh
+## Compatibility and sharing
+
+The previous three-repository MVP remains at [legacy.html](legacy.html). Existing \`#v1.\` links are redirected there automatically. The Composition scenario uses a separate \`#v2.\` document format; compression is URL-safe and local-only, with no backend or credentials.
+
+## Build and publishing
+
+\`\`\`sh
 npm install
 npm run check
 python3 -m http.server -d site 8080
-```
+\`\`\`
 
-Open `http://localhost:8080/`. Unit tests cover state transitions, linear replay/branching, JSON validation and compressed URL roundtrips.
+The canonical hosted surface is \`https://vslices.alive-lab.dev/playground/enactment/\`, assembled and published by \`vslices/index\` from an exact tested source commit. The Enactment PR and CI must be checked before updating the Index SHA; deployment is never an action of the playground.
 
-## Publication
+## Out of scope
 
-The canonical public surface is `https://vslices.alive-lab.dev/playground/enactment/`, **assembled and published by** [vslices/index](https://github.com/vslices/index) using a specifically pinned Enactment source revision. Merge and validate the Enactment PR first, then promote the exact tested revision through a separate Index PR. This repository's own GitHub Pages workflow is not the canonical VSlices host.
-
-No changes to Cloudflare DNS, Railway, real CI release gates or the Landing product/service repositories are part of this MVP.
-
-## Post-MVP
-
-Arbitrary graph authoring, unlimited repositories/environments, persistent branching trees, collaborations/accounts, search, analytics, true attestation/observability and integrations with real deployment services. These are not prerequisites for demonstrating the Landing scenario.
+Real CI/CD, permissions and workflow dispatch, branch protection, real Git SHA/tree attestation, isolated SQL Server, genuine Windows/IIS regression harness, staging migration and secrets, multi-environment promotion, production-grade concurrency and cancellation, arbitrary composition graphs, persistent fork histories and accounts. The experimental model is evidence for evolving protocol design, not evidence that the operational agreement has been realized.

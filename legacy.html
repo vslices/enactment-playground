@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121019">
+  <meta name="description" content="VSlices Enactment: laboratorio reproducible de publicación condicionada.">
+  <title>VSlices · Enactment Playground</title>
+  <link rel="icon" type="image/svg+xml" href="./vslices.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./assets/main.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="https://vslices.alive-lab.dev/" aria-label="Inicio de VSlices">
+      <img src="./vslices.svg" alt="" width="32" height="32">
+      <span><strong>VSlices</strong><small>ENACTMENT PLAYGROUND</small></span>
+    </a>
+    <div class="side-label">ESCENARIO ACTIVO</div>
+    <div class="active-scenario"><span class="side-dot"></span><span>Landing publication</span></div>
+    <div class="sidebar-note"><span class="status-pulse"></span> Simulación local<br><small>Sin Railway ni GitHub conectados</small></div>
+    <div class="sidebar-bottom">MVP 01 · Caso Landing<br><a href="https://github.com/vslices/enactment-playground">Repositorio fuente</a></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumbs"><span>VSlices</span><b>/</b><span>Playground</span><b>/</b><strong>Enactment</strong></div>
+      <span class="mode"><span class="status-pulse"></span> Browser-only · Sin efectos externos</span>
+    </header>
+    <main class="main">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">ESCENARIO · MVP 01</div>
+          <h1 id="scenario-title">Landing conditional publication</h1>
+          <p>Explora versiones, condiciones y transiciones. Cada acción queda en una historia reproducible.</p>
+        </div>
+        <div class="heading-actions">
+          <button id="reset-demo" type="button" class="button secondary">Restablecer demo</button>
+          <button id="copy-link" type="button" class="button primary">Copiar enlace</button>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Vistas del playground">
+        <button type="button" id="tab-overview" aria-selected="true" class="active">Overview</button>
+        <button type="button" id="tab-raw" aria-selected="false">Raw Config</button>
+      </nav>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+
+      <section id="overview-view">
+        <div class="metrics">
+          <div><span>Repositorios</span><strong id="metric-repos">3</strong></div>
+          <div><span>Dependencias</span><strong id="metric-deps">2</strong></div>
+          <div><span>Interacciones</span><strong id="metric-interactions">7</strong></div>
+          <div><span>Cursor</span><strong id="metric-cursor">7</strong></div>
+        </div>
+        <div class="overview-grid">
+          <div class="overview-primary">
+            <section class="panel graph-panel">
+              <div class="panel-heading">
+                <div><h2>Repositorios y dependencias</h2><p>Versiones y publicaciones simuladas en staging</p></div>
+                <span class="panel-tag">LANDING</span>
+              </div>
+              <div class="graph" aria-label="Landing depende de Identity y Accounts">
+                <div id="upstream-repos" class="upstream-repos"></div>
+                <div class="connectors" aria-hidden="true"><span class="leg left"></span><span class="bridge"></span><span class="leg right"></span><span class="down"></span><span class="arrow"></span></div>
+                <div id="landing-repo" class="landing-repo"></div>
+              </div>
+            </section>
+            <section class="panel history-panel">
+              <div class="panel-heading">
+                <div><h2>Historia de interacciones</h2><p>Regresa a cualquier punto sin ejecutar acciones inversas</p></div>
+                <span id="history-position" class="panel-tag">7 / 7</span>
+              </div>
+              <div class="history-controls">
+                <button id="step-first" type="button" class="button icon" aria-label="Ir al inicio">⏮</button>
+                <button id="step-prev" type="button" class="button secondary">← Deshacer</button>
+                <input type="range" id="history-range" min="0" max="7" value="7" aria-label="Punto de la historia">
+                <button id="step-next" type="button" class="button secondary">Rehacer →</button>
+                <button id="step-last" type="button" class="button icon" aria-label="Ir al final">⏭</button>
+              </div>
+              <div id="history-list" class="history-list"></div>
+              <p class="muted small">Si realizas una acción desde el pasado, la historia futura se reemplaza por una nueva trayectoria local.</p>
+            </section>
+          </div>
+          <aside class="overview-aside">
+            <section class="panel events-panel">
+              <div class="panel-heading"><div><h2>Eventos derivados</h2><p>Resultado del replay hasta el cursor</p></div></div>
+              <ol id="events-list" class="events-list"></ol>
+            </section>
+            <section class="panel explainer">
+              <h2>Regla central</h2>
+              <p>La aprobación de <code>test.yml</code> pertenece a una versión. Un cambio de dependencias reevalúa <code>try-deploy-railway</code>, <strong>sin repetir las pruebas</strong>.</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="raw-view" hidden>
+        <div class="raw-intro">Estas dos representaciones alimentan el mismo replay. Los cambios se validan antes de reemplazar la historia activa.</div>
+        <div class="raw-columns">
+          <section class="panel raw-panel">
+            <div class="panel-heading"><div><h2>Raw Config</h2><p>Participantes, nombres y dependencias del escenario</p></div><span class="panel-tag">JSON</span></div>
+            <label class="sr-only" for="config-json">Configuración JSON</label>
+            <textarea id="config-json" spellcheck="false" rows="19"></textarea>
+            <div class="raw-footer"><span>Topología acotada a Landing para este MVP</span><button type="button" id="apply-config" class="button primary">Aplicar configuración</button></div>
+          </section>
+          <section class="panel raw-panel">
+            <div class="panel-heading"><div><h2>Raw Interactions</h2><p>Inputs ordenados; el estado se reconstruye desde el inicio</p></div><span class="panel-tag">STACK</span></div>
+            <label class="sr-only" for="interactions-json">Historial de interacciones JSON</label>
+            <textarea id="interactions-json" spellcheck="false" rows="19"></textarea>
+            <div class="raw-footer"><span id="raw-count">0 acciones</span><button type="button" id="apply-interactions" class="button primary">Aplicar interacciones</button></div>
+          </section>
+        </div>
+      </section>
+
+      <footer class="footer">VSlices · Enactment Playground · <a href="https://github.com/vslices/protocols/pull/5">Protocolo experimental</a> · <a href="https://github.com/vslices/enactment-playground">Código fuente</a></footer>
+    </main>
+  </div>
+</div>
+
+<dialog id="version-dialog" class="modal">
+  <form id="version-form">
+    <div class="dialog-head"><h2>Nueva versión</h2><button type="button" class="button icon" data-close="version-dialog" aria-label="Cerrar">✕</button></div>
+    <p class="muted" id="version-repo-label"></p>
+    <label>Nombre de versión<input id="new-version-name" name="name" placeholder="I2 / A2 / L3" required maxlength="80"></label>
+    <div id="version-dependencies"></div>
+    <div class="dialog-actions"><button type="button" class="button secondary" data-close="version-dialog">Cancelar</button><button class="button primary" type="submit">Crear candidato</button></div>
+  </form>
+</dialog>
+<dialog id="observe-dialog" class="modal">
+  <form id="observe-form">
+    <div class="dialog-head"><h2>Simular observación</h2><button type="button" class="button icon" data-close="observe-dialog" aria-label="Cerrar">✕</button></div>
+    <p class="muted" id="observe-repo-label"></p>
+    <label>Revisión observada<select id="observed-revision" name="revision"></select></label>
+    <label>Salud<select id="observed-health" name="healthy"><option value="true">Healthy</option><option value="false">Unhealthy</option></select></label>
+    <label>Secuencia<input type="number" id="observed-sequence" name="sequence" min="1" step="1" required></label>
+    <div class="dialog-actions"><button type="button" class="button secondary" data-close="observe-dialog">Cancelar</button><button class="button primary" type="submit">Agregar observación</button></div>
+  </form>
+</dialog>
+</body>
+</html>
