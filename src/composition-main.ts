@@ -122,8 +122,8 @@ function openAction(type:string,repo?:RepoId){
   html+=field('tree','Identificador del árbol probado','tree-'+(repo==='composition'?'C1':doc.config.requires[repo as Participant]));
  }else if(type==='test'||type==='windows'){
   html+=field('verdict','Resultado','passed',['passed','failed','inconclusive']);
-  html+=field('profile','Perfil de pruebas',type==='windows'?'windows-iis-serviu-qa-approx':
-   repo==='composition'?'linux-aspire-sql-e2e':'linux');
+  html+=field('profile','Perfil de pruebas',type==='windows'?doc.config.profiles.compositionWindows:
+   repo==='composition'?doc.config.profiles.compositionLinux:doc.config.profiles.ownerLinux);
  }else if(type==='merge'){
   html+=field('tree','Árbol resultante de merge',candidate?.tree??'');
  }else if(type==='finish'){
