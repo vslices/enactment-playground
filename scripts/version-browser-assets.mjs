@@ -17,4 +17,7 @@ for(const source of ['composition-main.js','composition-share.js']){
 }
 update('site/assets/composition-main.js',"from './composition-share.js'","from './composition-share.js?v="+fingerprint+"'");
 update('site/index.html','./assets/composition-main.js','./assets/composition-main.js?v='+fingerprint);
-console.log('Versioned Composition browser assets with '+fingerprint);
+const cssFingerprint=createHash('sha256').update(readFileSync('site/styles.css')).digest('hex').slice(0,12);
+update('site/index.html','href="./styles.css"','href="./styles.css?v='+cssFingerprint+'"');
+update('site/legacy.html','href="./styles.css"','href="./styles.css?v='+cssFingerprint+'"');
+console.log('Versioned Composition browser assets with '+fingerprint+' and CSS '+cssFingerprint);
