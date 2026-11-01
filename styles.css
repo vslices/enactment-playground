@@ -260,3 +260,53 @@ dialog.introduction-dialog::backdrop{background:rgba(6,3,9,.78)}
  .sidebar{position:relative;top:auto;z-index:1}
  .tabs{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
 }
+
+/* Compact scenario indicators occupy the rail instead of pushing the graph down. */
+.sidebar-metrics{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin-top:6px;
+}
+.sidebar-metric{
+ min-width:0;
+ padding:10px 9px;
+ border:1px solid var(--line);
+ border-radius:9px;
+ background:var(--panel);
+}
+.sidebar-metric span{
+ display:block;
+ margin-bottom:5px;
+ color:var(--muted);
+ font-size:.64rem;
+ line-height:1.25;
+}
+.sidebar-metric strong{
+ display:block;
+ font-size:1.1rem;
+ line-height:1.2;
+ font-weight:750;
+ letter-spacing:-.025em;
+ overflow-wrap:anywhere;
+}
+#metric-authority{font-size:.85rem;letter-spacing:-.015em}
+@media(min-width:801px) and (max-width:1140px){
+ .sidebar-metrics{gap:6px}
+ .sidebar-metric{padding:9px 7px}
+ .sidebar-metric span{font-size:.61rem}
+ .sidebar-metric strong{font-size:1rem}
+ #metric-authority{font-size:.78rem}
+}
+@media(max-width:800px){
+ .sidebar-metrics{flex:1 0 100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:0}
+ .sidebar-metric{padding:7px 8px}
+ .sidebar-metric span{font-size:.6rem;margin-bottom:3px}
+ .sidebar-metric strong{font-size:.85rem}
+ #metric-authority{font-size:.7rem}
+}
+@media(max-width:420px){
+ .sidebar-metric{padding:6px}
+ .sidebar-metric span{font-size:.56rem}
+ #metric-authority{font-size:.65rem}
+}
