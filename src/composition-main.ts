@@ -88,6 +88,7 @@ function renderHistory(){
 }
 function render(){
  el('scenario-title').textContent=doc.config.name;
+ el('sidebar-scenario-name').textContent=doc.config.name;
  el('metric-interactions').textContent=String(doc.interactions.length);
  el('metric-cursor').textContent=String(doc.cursor);
  el('composition-card').innerHTML=repoCard('composition');
@@ -161,7 +162,6 @@ function commitAction(){
 document.querySelectorAll('[id^="tab-"]').forEach(b=>b.addEventListener('click',()=>{
  tab=b.id==='tab-raw'?'raw':'overview';render()
 }));
-el('reset-demo').addEventListener('click',()=>setDoc(example()));
 el('clear').addEventListener('click',()=>setDoc(validateDocument({formatVersion:2,config:initialConfig(),interactions:[],cursor:0})));
 el('copy-link').addEventListener('click',async()=>{
  try{const hash=await encode(doc);++writeId;history.replaceState(null,'',location.pathname+location.search+hash);
