@@ -129,6 +129,19 @@ const dependencyReasons=(s:State,c:Configuration,id:Participant):string[]=>{
 };
 const isReady=(s:State,c:Configuration,id:Participant)=>
  s.evaluation==='eligible'&&dependencyReasons(s,c,id).length===0;
+function invalidateDecision(s:State,reason:string){
+ s.evaluation='unknown';s.evaluationReasons=[reason];
+ if(s.promotionRequested){
+  s.promotionRequested=false;
+  for(const id of participants){
+   const a=s.attempts[id];
+   if(a.phase==='queued'||a.phase==='blocked'){
+    a.phase='blocked';a.reason=['Autorización invalidada: requiere nueva evaluación y solicitud'];
+   }
+  }
+  s.log.push('Composition: autorización pendiente revocada por cambio en evidencia/candidato');
+ }
+}
 function reconsider(s:State,c:Configuration){
  if(!s.promotionRequested)return;
  for(const id of participants){
@@ -149,12 +162,12 @@ export function transition(before:State,config:Configuration,input:Interaction):
  const candidate=(id:RepoId)=>{const c=s.candidates[id];assert(c,'Candidato inexistente: '+id);return c};
  switch(event.type){
  case 'candidate':
-  s.evaluation='unknown';s.evaluationReasons=['Cambió el candidato: reevaluar evidencia'];
+  invalidateDecision(s,'Cambió el candidato: reevaluar evidencia');
   assert(!s.candidates[event.repo],'Candidato ya creado para '+event.repo);
   s.candidates[event.repo]={id:event.repo,revision:event.revision,tree:event.tree,mergedTree:null};
   s.log.push(config.repos[event.repo]+'@'+event.revision+': candidato preparado');reconsider(s,config);break;
  case 'test':{
-  s.evaluation='unknown';s.evaluationReasons=['Nueva evidencia: reevaluar Composition/main'];
+  invalidateDecision(s,'Nueva evidencia: reevaluar Composition/main');
   const c=candidate(event.repo);
   s.evidence.push({repo:event.repo,revision:c.revision,tree:c.mergedTree??c.tree,suite:event.suite,
    verdict:event.verdict,profile:event.profile});
@@ -162,7 +175,7 @@ export function transition(before:State,config:Configuration,input:Interaction):
   reconsider(s,config);break;
  }
  case 'merge':{
-  s.evaluation='unknown';s.evaluationReasons=['Cambió main: reevaluar evidencia'];
+  invalidateDecision(s,'Cambió main: reevaluar evidencia');
   const c=candidate(event.repo);
   assert(c.mergedTree===null,'El candidato ya fue fusionado');
   if(event.repo==='composition'){
@@ -189,7 +202,8 @@ export function transition(before:State,config:Configuration,input:Interaction):
   assert(!s.promotionRequested,'La solicitud de promoción ya fue emitida');
   s.promotionRequested=true;
   for(const id of participants){
-   const a=s.attempts[id];assert(a.phase==='idle'||a.phase==='blocked'||a.phase==='failed','Solicitud duplicada: '+id);
+   const a=s.attempts[id];
+   if(a.phase==='deploying')continue; // Never cancel an already-started owner effect.
    const deployed=s.deployed[id];
    if(deployed===config.requires[id]&&!s.unhealthy.includes(id)){
     a.phase='already-deployed';a.reason=[];s.log.push(config.repos[id]+': AlreadyDeployed');
