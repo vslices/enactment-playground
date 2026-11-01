@@ -124,3 +124,18 @@ test('new evidence after eligibility invalidates authorization until reevaluated
  d=append(d,{type:'evaluate'});
  assert.equal(replay(d).evaluation,'rejected');
 });
+
+test('pending authorization is revoked by evidence changes and requires new explicit request',()=>{
+ let d=append(approved(),{type:'request-promotion'});
+ assert.equal(replay(d).attempts.identity.phase,'queued');
+ d=append(d,passed('composition','composition-linux','linux-aspire-sql-e2e'));
+ let s=replay(d);
+ assert.equal(s.promotionRequested,false);
+ assert.equal(s.attempts.identity.phase,'blocked');
+ assert.throws(()=>append(d,{type:'start',repo:'identity'}));
+ d=append(d,{type:'evaluate'});
+ assert.equal(replay(d).evaluation,'eligible');
+ assert.equal(replay(d).attempts.identity.phase,'blocked');
+ d=append(d,{type:'request-promotion'});
+ assert.equal(replay(d).attempts.identity.phase,'queued');
+});
