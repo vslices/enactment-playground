@@ -50,3 +50,9 @@ The canonical hosted surface is \`https://vslices.alive-lab.dev/playground/enact
 ## Out of scope
 
 Real CI/CD, permissions and workflow dispatch, branch protection, real Git SHA/tree attestation, isolated SQL Server, genuine Windows/IIS regression harness, staging migration and secrets, multi-environment promotion, production-grade concurrency and cancellation, arbitrary composition graphs, persistent fork histories and accounts. The experimental model is evidence for evolving protocol design, not evidence that the operational agreement has been realized.
+
+### Introducción del escenario
+
+La presentación del escenario se configura en `Raw Config.introduction` (`eyebrow` y `description`) junto con `name`. Overview prioriza el canvas sin un bloque introductorio permanente. El botón **Ver introducción** del sidebar abre un diálogo descartable, también disponible para volver a leerlo más tarde.
+
+Al abrir por primera vez un título de escenario, el diálogo se muestra automáticamente y se recuerda el título en `localStorage` para evitar interrupciones posteriores. No se registra un usuario ni se requiere backend. Si el almacenamiento está bloqueado, el navegador conserva un fallback durante la sesión actual. Un escenario renombrado se considera un título nuevo. La información está incluida en los enlaces `#v2.`; los documentos anteriores sin `introduction` se completan con el texto inicial para mantener compatibilidad.
