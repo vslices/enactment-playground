@@ -7,7 +7,8 @@ export type Phase='idle'|'blocked'|'queued'|'deploying'|'failed'|'published'|'al
 export type Candidate={id:string;revision:string;tree:string;mergedTree:string|null};
 export type Evidence={repo:RepoId;revision:string;tree:string;suite:Suite;verdict:Verdict;profile:string};
 export type Attempt={phase:Phase;number:number;reason:string[]};
-export type Configuration={formatVersion:2;scenario:'landing-composition-promotion';name:string;target:'qa-internal';repos:Record<RepoId,string>;requires:Record<Participant,string>;profiles:{ownerLinux:string;compositionLinux:string;compositionWindows:string};windowsRequired:boolean};
+export type ScenarioIntroduction={eyebrow:string;description:string};
+export type Configuration={formatVersion:2;scenario:'landing-composition-promotion';name:string;introduction:ScenarioIntroduction;target:'qa-internal';repos:Record<RepoId,string>;requires:Record<Participant,string>;profiles:{ownerLinux:string;compositionLinux:string;compositionWindows:string};windowsRequired:boolean};
 export type Interaction=
  |{type:'candidate';repo:RepoId;revision:string;tree:string}
  |{type:'test';repo:RepoId;suite:Suite;verdict:Verdict;profile:string}
@@ -29,7 +30,7 @@ const ids:RepoId[]=['identity','accounts','landing','composition'];
 export const participants:Participant[]=['identity','accounts','landing'];
 function assert(condition:unknown,message:string):asserts condition {if(!condition)throw Error(message)}
 const isObj=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
-const string=(value:unknown,label:string)=>{assert(typeof value==='string'&&value.length>0&&value.length<=100,label+' inválido');return value};
+const string=(value:unknown,label:string,maxLength=100)=>{assert(typeof value==='string'&&value.trim().length>0&&value.length<=maxLength,label+' inválido');return value};
 const isParticipant=(value:unknown):value is Participant=>participants.includes(value as Participant);
 const isRepo=(value:unknown):value is RepoId=>ids.includes(value as RepoId);
 const suites:Suite[]=['owner-linux','composition-linux','composition-windows'];
@@ -37,6 +38,7 @@ const verdicts:Verdict[]=['passed','failed','inconclusive'];
 
 export const initialConfig=():Configuration=>({
  formatVersion:2,scenario:'landing-composition-promotion',name:'Landing · promoción coordinada por Composition',
+ introduction:{eyebrow:'LANDING · CONTRATO PROPUESTO',description:'Los propietarios prueban y publican su código. Composition fija revisiones, verifica compatibilidad y autoriza QA interno desde main.'},
  target:'qa-internal',
  repos:{identity:'identity-service',accounts:'account-service',landing:'landing-product',composition:'landing-composition'},
  requires:{identity:'I1',accounts:'A1',landing:'L2'},
@@ -61,13 +63,21 @@ export function validateConfig(input:unknown):Configuration{
  assert(new Set(Object.values(repos)).size===4,'Nombres de repositorio duplicados');
  const requires={} as Record<Participant,string>;
  for(const id of participants)requires[id]=string(input.requires[id],'Revisión fijada '+id);
+ const introDefault=initialConfig().introduction;
+ // Older v2 links contain no introduction; preserve their validity and fill defaults.
+ const introduction=input.introduction===undefined?introDefault:(()=>{
+  assert(isObj(input.introduction),'Introducción debe ser un objeto');
+  const eyebrow=string(input.introduction.eyebrow,'Etiqueta de introducción');
+  const description=string(input.introduction.description,'Descripción de introducción',2000);
+  return {eyebrow,description};
+ })();
  assert(input.windowsRequired===true,'Landing interactivo requiere regresión Windows/IIS');
  assert(isObj(input.profiles),'Perfiles obligatorios para validar evidencia');
  const profiles={ownerLinux:string(input.profiles.ownerLinux,'Perfil Linux propietario'),
   compositionLinux:string(input.profiles.compositionLinux,'Perfil Linux Composition'),
   compositionWindows:string(input.profiles.compositionWindows,'Perfil Windows/IIS')};
  return {formatVersion:2,scenario:'landing-composition-promotion',name:string(input.name,'Nombre'),target:'qa-internal',
- repos,requires,profiles,windowsRequired:true};
+ repos,requires,introduction,profiles,windowsRequired:true};
 }
 export function parseInteraction(raw:unknown):Interaction{
  assert(isObj(raw),'Cada interacción debe ser un objeto');
