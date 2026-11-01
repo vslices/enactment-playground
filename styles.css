@@ -203,3 +203,16 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93em;col
  .workspace{margin-left:0}
  .sidebar{position:sticky;top:0;bottom:auto;width:100%;height:auto;z-index:20}
 }
+
+/* Scenario introduction is contextual help, not permanent canvas content. */
+.sidebar-introduction{width:100%;min-height:36px}
+.introduction-dialog{width:min(560px,calc(100vw - 28px));padding:26px}
+.introduction-dialog h2{font-size:clamp(1.3rem,3vw,1.8rem);line-height:1.25;margin:20px 0 12px;overflow-wrap:anywhere}
+.introduction-dialog #introduction-description{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);line-height:1.75;font-size:.89rem;margin:0 0 24px}
+.introduction-dialog .dialog-actions{margin-top:20px}
+@media(max-width:800px){
+ .sidebar .sidebar-introduction{width:auto;min-height:34px;font-size:.71rem;padding:9px 10px}
+}
+@media(max-width:560px){
+ .sidebar .sidebar-introduction{font-size:.67rem;padding:7px 8px}
+}
