@@ -19,12 +19,17 @@ function rememberIntroduction(name:string){
 function openIntroduction(onlyIfUnseen=false){
  const {name,introduction}=doc.config;
  if(onlyIfUnseen&&introductionSeen(name))return;
- el('introduction-eyebrow').textContent=introduction.eyebrow;
- el('introduction-title').textContent=name;
- el('introduction-description').textContent=introduction.description;
- rememberIntroduction(name);
  const dialog=el<HTMLDialogElement>('introduction-dialog');
- if(!dialog.open)dialog.showModal();
+ try{
+  el('introduction-eyebrow').textContent=introduction.eyebrow;
+  el('introduction-title').textContent=name;
+  el('introduction-description').textContent=introduction.description;
+  if(!dialog.open)dialog.showModal();
+  // A scenario counts as visited only once its introduction was successfully shown.
+  rememberIntroduction(name);
+ }catch(error){
+  message('No fue posible mostrar la introducción: '+String(error));
+ }
 }
 
 const el=<T extends HTMLElement=HTMLElement>(id:string):T=>document.getElementById(id) as T;
