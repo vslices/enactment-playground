@@ -139,3 +139,25 @@ test('pending authorization is revoked by evidence changes and requires new expl
  d=append(d,{type:'request-promotion'});
  assert.equal(replay(d).attempts.identity.phase,'queued');
 });
+
+test('scenario introduction is validated, configurable and shareable without altering execution',async()=>{
+ const original=example();
+ const updated=validateDocument({...original,config:{...original.config,
+   name:'Mi escenario',introduction:{eyebrow:'EXPERIMENTO',description:'Esta es una descripción configurable del escenario.'}}});
+ assert.equal(updated.config.introduction.eyebrow,'EXPERIMENTO');
+ assert.equal(updated.config.introduction.description,'Esta es una descripción configurable del escenario.');
+ assert.deepEqual(replay(updated),replay(original));
+ assert.deepEqual(await decode(await encode(updated)),updated);
+ assert.throws(()=>validateDocument({...original,config:{...original.config,introduction:{eyebrow:'',description:'Texto'}}}));
+ assert.throws(()=>validateDocument({...original,config:{...original.config,introduction:{eyebrow:'Etiqueta',description:''}}}));
+});
+test('previous v2 URLs without an introduction receive a compatible default',async()=>{
+ const original=example();
+ const legacy={...original,config:{...original.config}};
+ delete legacy.config.introduction;
+ const migrated=validateDocument(legacy);
+ assert.equal(migrated.config.introduction.eyebrow,'LANDING · CONTRATO PROPUESTO');
+ assert.match(migrated.config.introduction.description,/Composition/);
+ assert.deepEqual(replay(migrated),replay(original));
+ assert.deepEqual(await decode(await encode(migrated)),migrated);
+});
