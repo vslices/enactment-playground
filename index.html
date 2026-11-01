@@ -9,6 +9,7 @@
 <a class="brand" href="https://vslices.alive-lab.dev/"><img src="./vslices.svg" width="32" height="32" alt=""><span><strong>VSlices</strong><small>ENACTMENT PLAYGROUND</small></span></a>
 <div class="side-label">ESCENARIO ACTIVO</div>
 <div class="active-scenario"><span class="side-dot" aria-hidden="true"></span><span id="sidebar-scenario-name">Landing · promoción coordinada por Composition</span></div>
+<button id="view-introduction" type="button" class="button secondary sidebar-introduction" aria-haspopup="dialog">Ver introducción</button>
 <button id="copy-link" type="button" class="button primary sidebar-share">Copiar enlace</button>
 <div class="sidebar-bottom">
   <button id="clear" type="button" class="button secondary sidebar-reset">Resetear</button>
@@ -17,8 +18,6 @@
 </aside>
 <div class="workspace"><header class="topbar"><div class="breadcrumbs"><a href="https://vslices.alive-lab.dev/">VSlices</a><b>/</b><span>Playground</span><b>/</b><strong>Composition promotion</strong></div><span class="mode">● Browser-only · QA interno simulado</span></header>
 <main class="main">
-<div class="page-heading"><div><div class="eyebrow">LANDING · CONTRATO PROPUESTO</div><h1 id="scenario-title">Landing · promoción coordinada por Composition</h1><p>Los propietarios prueban y publican su código. Composition fija revisiones, verifica compatibilidad y autoriza QA interno desde main.</p></div>
-</div>
 <nav class="tabs" aria-label="Vistas"><button id="tab-overview" class="active" aria-selected="true">Overview</button><button id="tab-raw" aria-selected="false">Raw Config</button></nav>
 <div id="notice" role="status" hidden></div>
 <section id="overview-view">
@@ -43,5 +42,10 @@
 </div></section>
 <footer class="footer">Simulación del <a href="https://github.com/atom-dev-serviu/landing-composition/blob/64c0c4996e39c9abe9d8e07fb7e354a8c6cde98f/docs/ci-cd-composition-promotion-decision-2026-11-01.md">contrato Landing Composition del 1 de noviembre</a> · No ejecuta CI/CD ni despliegues reales · <a href="./legacy.html">Escenario anterior</a></footer>
 </main></div></div>
+<dialog id="introduction-dialog" class="modal introduction-dialog" aria-labelledby="introduction-title" aria-describedby="introduction-description">
+<div class="dialog-head"><span id="introduction-eyebrow" class="eyebrow"></span><button type="button" class="button icon" id="close-introduction" aria-label="Cerrar introducción">✕</button></div>
+<h2 id="introduction-title"></h2><p id="introduction-description"></p>
+<div class="dialog-actions"><button type="button" id="dismiss-introduction" class="button primary">Ir al playground</button></div>
+</dialog>
 <dialog id="action-dialog" class="modal"><form id="action-form"><div class="dialog-head"><h2 id="action-title">Acción simulada</h2><button type="button" class="button icon" id="close-dialog">✕</button></div><div id="action-fields"></div><div class="dialog-actions"><button type="button" class="button secondary" id="cancel-dialog">Cancelar</button><button class="button primary" type="submit">Registrar interacción</button></div></form></dialog>
 </body></html>
