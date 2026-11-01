@@ -129,3 +129,19 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93em;col
 @media(max-width:1140px){.app-shell{grid-template-columns:190px minmax(0,1fr)}.main{padding:24px}.topbar{padding:14px 24px}.overview-grid{grid-template-columns:1fr}.overview-aside{display:grid;grid-template-columns:1fr 1fr}.events-list{max-height:300px}}
 @media(max-width:800px){.app-shell{grid-template-columns:1fr}.sidebar{display:none}.raw-columns{grid-template-columns:1fr}.main{padding:19px}.topbar{padding:14px 19px}.mode{display:none}}
 @media(max-width:560px){.page-heading{align-items:stretch;flex-direction:column}.heading-actions{justify-content:flex-start}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.upstream-repos{grid-template-columns:1fr}.connectors{display:none}.landing-repo{margin-top:16px}.overview-aside{display:flex}.history-controls{flex-wrap:wrap}.history-controls #history-range{order:-1;flex-basis:100%}.panel{padding:14px}.repo-card{padding:13px}.breadcrumbs{gap:7px}}
+
+/* Composition decision canvas: scoped to the new v2 scenario. */
+.composition-central{margin:18px auto 0;max-width:680px}
+.composition-connection{height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--accent-bright);font-size:.72rem;gap:6px}
+.composition-connection span:last-child{font-size:1.5rem;line-height:1}
+.composition-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.composition-landing{max-width:500px;margin:18px auto 0}
+.composition-evidence-list{border-top:1px solid var(--line);padding-top:8px;margin-top:12px}
+.composition-evidence{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:4px 0;font-size:.68rem;color:var(--muted)}
+.composition-evidence strong{color:var(--text)}
+.composition-evidence span{font-size:.61rem;color:var(--muted);overflow-wrap:anywhere}
+.composition-evaluation{margin-top:12px;padding:11px;background:var(--accent-soft);border-radius:8px;font-size:.73rem}
+.composition-evaluation p{font-size:.67rem;color:var(--warning);line-height:1.6;margin:6px 0}
+.composition-landing>.repo-card{border-color:#82518c}
+#action-fields{display:flex;flex-direction:column;gap:13px}
+@media(max-width:580px){.composition-services{grid-template-columns:1fr}.composition-landing{margin-top:15px}.composition-central{max-width:100%}}
