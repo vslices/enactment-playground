@@ -7,14 +7,18 @@
 <body><div class="app-shell">
 <aside class="sidebar">
 <a class="brand" href="https://vslices.alive-lab.dev/"><img src="./vslices.svg" width="32" height="32" alt=""><span><strong>VSlices</strong><small>ENACTMENT PLAYGROUND</small></span></a>
-<div class="side-label">ESCENARIO ACTIVO</div><div class="active-scenario"><span class="side-dot"></span><span>Landing Composition</span></div>
-<div class="sidebar-note"><span class="status-pulse"></span> Simulación local<br><small>Decisión documentada; CI/CD real pendiente</small></div>
-<div class="sidebar-bottom">Contrato de promoción · 2026-11-01<br><a href="./legacy.html">Abrir escenario MVP anterior</a><br><a href="https://github.com/atom-dev-serviu/landing-composition/blob/64c0c4996e39c9abe9d8e07fb7e354a8c6cde98f/docs/ci-cd-composition-promotion-decision-2026-11-01.md">Decisión de origen</a></div>
+<div class="side-label">ESCENARIO ACTIVO</div>
+<div class="active-scenario"><span class="side-dot" aria-hidden="true"></span><span id="sidebar-scenario-name">Landing · promoción coordinada por Composition</span></div>
+<button id="copy-link" type="button" class="button primary sidebar-share">Copiar enlace</button>
+<div class="sidebar-bottom">
+  <button id="clear" type="button" class="button secondary sidebar-reset">Resetear</button>
+  <p class="sidebar-protocol">Basado en <a href="https://github.com/vslices/protocols/blob/main/enactment/protocol.md">Enactment</a></p>
+</div>
 </aside>
-<div class="workspace"><header class="topbar"><div class="breadcrumbs"><span>VSlices</span><b>/</b><span>Playground</span><b>/</b><strong>Composition promotion</strong></div><span class="mode">● Browser-only · QA interno simulado</span></header>
+<div class="workspace"><header class="topbar"><div class="breadcrumbs"><a href="https://vslices.alive-lab.dev/">VSlices</a><b>/</b><span>Playground</span><b>/</b><strong>Composition promotion</strong></div><span class="mode">● Browser-only · QA interno simulado</span></header>
 <main class="main">
 <div class="page-heading"><div><div class="eyebrow">LANDING · CONTRATO PROPUESTO</div><h1 id="scenario-title">Landing · promoción coordinada por Composition</h1><p>Los propietarios prueban y publican su código. Composition fija revisiones, verifica compatibilidad y autoriza QA interno desde main.</p></div>
-<div class="heading-actions"><button id="reset-demo" class="button secondary">Restablecer ejemplo</button><button id="clear" class="button secondary">Desde cero</button><button id="copy-link" class="button primary">Copiar enlace</button></div></div>
+</div>
 <nav class="tabs" aria-label="Vistas"><button id="tab-overview" class="active" aria-selected="true">Overview</button><button id="tab-raw" aria-selected="false">Raw Config</button></nav>
 <div id="notice" role="status" hidden></div>
 <section id="overview-view">
