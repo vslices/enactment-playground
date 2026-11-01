@@ -182,3 +182,24 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93em;col
  .sidebar .active-scenario{flex-basis:130px}
  .sidebar .sidebar-share,.sidebar .sidebar-reset{font-size:.67rem;padding:7px 8px}
 }
+
+/* Keep the desktop sidebar anchored to the viewport, regardless of document scroll.
+   The workspace retains normal page scrolling; only the rail may overflow internally. */
+@media (min-width:801px){
+ .app-shell{display:block}
+ .sidebar{
+  position:fixed;inset:0 auto 0 0;top:0;bottom:0;
+  width:230px;height:100vh;height:100dvh;
+  z-index:10;align-self:auto;overflow-y:auto;
+ }
+ .workspace{margin-left:230px;min-width:0}
+}
+@media (min-width:801px) and (max-width:1140px){
+ .sidebar{width:190px}
+ .workspace{margin-left:190px}
+}
+@media (max-width:800px){
+ .app-shell{display:block}
+ .workspace{margin-left:0}
+ .sidebar{position:sticky;top:0;bottom:auto;width:100%;height:auto;z-index:20}
+}
