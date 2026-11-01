@@ -28,3 +28,46 @@ test('failed deployment can retry without retesting',()=>{
  s=send(s,'try','l2');const v=s.versions.find(v=>v.id==='l2');
  assert.equal(v.attempts,2);assert.equal(v.test,'passed');
 });
+
+test('queued release is revoked if Identity becomes unhealthy before start',()=>{
+ let s=landing();s=success(success(s,'i1'),'a1');
+ assert.equal(s.versions.find(v=>v.id==='l2').publish,'queued');
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i1',healthy:false,sequence:10});
+ const l=s.versions.find(v=>v.id==='l2');
+ assert.equal(l.publish,'blocked');assert.equal(l.test,'passed');
+ assert.match(blockers(s,l).join(' '),/no saludable/);
+ assert.throws(()=>send(s,'start','l2'),/Sin intento en cola/);
+});
+test('fresh healthy observation re-queues only deployment',()=>{
+ let s=landing();s=success(success(s,'i1'),'a1');
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i1',healthy:false,sequence:10});
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i1',healthy:true,sequence:11});
+ const l=s.versions.find(v=>v.id==='l2');
+ assert.equal(l.publish,'queued');assert.equal(l.attempts,2);
+ assert.equal(s.log.filter(x=>x==='L2: test.yml passed').length,1);
+});
+test('duplicate and older observation do not override the latest environment',()=>{
+ let s=landing();s=success(success(s,'i1'),'a1');
+ s=reduce(s,{type:'observe',repo:'identity',revision:null,healthy:false,sequence:20});
+ assert.equal(s.versions.find(v=>v.id==='l2').publish,'blocked');
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i1',healthy:true,sequence:19});
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i1',healthy:true,sequence:20});
+ assert.equal(s.deployed.identity,undefined);
+ assert.equal(s.versions.find(v=>v.id==='l2').publish,'blocked');
+});
+test('duplicate terminal notification cannot trigger duplicate release',()=>{
+ let s=landing();s=success(success(s,'i1'),'a1');
+ s=send(s,'start','l2');
+ s=send(s,'finish','l2',{success:true});
+ const oldLogs=s.log.length;
+ s=send(s,'finish','l2',{success:true});
+ assert.equal(s.log.length,oldLogs);
+ assert.equal(s.versions.find(v=>v.id==='l2').attempts,1);
+});
+test('observed incompatible version blocks same tested candidate',()=>{
+ let s=landing();s=success(success(s,'i1'),'a1');
+ s=reduce(s,{type:'version',id:'i2',repo:'identity',name:'I2',requires:{}});
+ s=reduce(s,{type:'observe',repo:'identity',revision:'i2',healthy:true,sequence:12});
+ const l=s.versions.find(v=>v.id==='l2');
+ assert.equal(l.publish,'blocked');assert.match(blockers(s,l).join(' '),/versión incompatible/);
+});

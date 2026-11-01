@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "tsc && mkdir -p site/assets && cp index.html styles.css site/ && cp dist/*.js site/assets/",
+    "build": "tsc && mkdir -p site/assets && cp index.html styles.css assets/vslices.svg site/ && cp dist/*.js site/assets/",
     "test": "node --test tests/*.mjs",
     "check": "npm run build && npm test"
   },
