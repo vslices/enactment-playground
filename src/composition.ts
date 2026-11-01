@@ -20,7 +20,7 @@ export type Interaction=
 export type Document={formatVersion:2;config:Configuration;interactions:Interaction[];cursor:number};
 export type State={
   candidates:Partial<Record<RepoId,Candidate>>;
-  evidence:Evidence[]; compositionMain:boolean; evaluation:'unknown'|'eligible'|'blocked'|'rejected';
+  evidence:Evidence[]; compositionMain:boolean; promotionRequested:boolean; evaluation:'unknown'|'eligible'|'blocked'|'rejected';
   evaluationReasons:string[]; attempts:Record<Participant,Attempt>;
   deployed:Partial<Record<Participant,string>>; unhealthy:Participant[];
   observations:Record<Participant,number>; log:string[];
@@ -43,7 +43,7 @@ export const initialConfig=():Configuration=>({
  windowsRequired:true
 });
 export const empty=():State=>({
- candidates:{},evidence:[],compositionMain:false,evaluation:'unknown',evaluationReasons:['No se ha evaluado Composition/main'],
+ candidates:{},evidence:[],compositionMain:false,promotionRequested:false,evaluation:'unknown',evaluationReasons:['No se ha evaluado Composition/main'],
  attempts:{
   identity:{phase:'idle',number:0,reason:[]},
   accounts:{phase:'idle',number:0,reason:[]},
@@ -124,6 +124,7 @@ const dependencyReasons=(s:State,c:Configuration,id:Participant):string[]=>{
 const isReady=(s:State,c:Configuration,id:Participant)=>
  s.evaluation==='eligible'&&dependencyReasons(s,c,id).length===0;
 function reconsider(s:State,c:Configuration){
+ if(!s.promotionRequested)return;
  for(const id of participants){
   const a=s.attempts[id];
   if(a.phase==='deploying'||a.phase==='published'||a.phase==='failed'||a.phase==='already-deployed')continue;
@@ -174,6 +175,8 @@ export function transition(before:State,config:Configuration,input:Interaction):
  }
  case 'request-promotion':{
   assert(s.evaluation==='eligible','Composition/main no ha autorizado la promoción');
+  assert(!s.promotionRequested,'La solicitud de promoción ya fue emitida');
+  s.promotionRequested=true;
   for(const id of participants){
    const a=s.attempts[id];assert(a.phase==='idle'||a.phase==='blocked'||a.phase==='failed','Solicitud duplicada: '+id);
    const deployed=s.deployed[id];
