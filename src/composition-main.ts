@@ -54,7 +54,7 @@ function repoCard(repo:RepoId){
  }
  if(repo==='composition'&&candidate){
   controls+=button(repo,'evaluate','Evaluar evidencia',true);
-  if(s.evaluation==='eligible')controls+=button(repo,'request-promotion','Solicitar QA interno',true);
+  if(s.evaluation==='eligible'&&!s.promotionRequested)controls+=button(repo,'request-promotion','Solicitar QA interno',true);
  }
  const evidenceRows=evidence.map(e=>'<div class="composition-evidence">'+esc(e.suite)+' · <strong class="'+(e.verdict==='passed'?'health':'')+'">'+esc(e.verdict)+'</strong><span>'+esc(e.profile)+'</span></div>').join('');
  const tag=repo==='composition'?'<span class="panel-tag">AUTORIDAD</span>':
@@ -107,10 +107,10 @@ function render(){
   el('raw-count').textContent=doc.interactions.length+' interacciones · cursor '+doc.cursor;
  }
 }
-function field(id:string,label:string,value:string,selectOptions?:string[]):string {
+function field(id:string,label:string,value:string,selectOptions?:string[],optional=false):string {
  return '<label>'+esc(label)+(selectOptions?
  '<select name="'+id+'">'+selectOptions.map(opt=>'<option value="'+esc(opt)+'" '+(opt===value?'selected':'')+'>'+esc(opt)+'</option>').join('')+'</select>':
- '<input name="'+id+'" value="'+esc(value)+'" required maxlength="100">')+'</label>';
+ '<input name="'+id+'" value="'+esc(value)+'" '+(optional?'':'required')+' maxlength="100">')+'</label>';
 }
 function openAction(type:string,repo?:RepoId){
  action={type,repo};
@@ -131,7 +131,7 @@ function openAction(type:string,repo?:RepoId){
   html+=field('revision','Revisión efectivamente observada',doc.config.requires[repo as Participant]);
   html+=field('healthy','Healthy','true',['true','false']);
  }else if(type==='observe'){
-  html+=field('revision','Revisión observada (vacío = ausente)',s.deployed[repo as Participant]??'');
+  html+=field('revision','Revisión observada (vacío = ausente)',s.deployed[repo as Participant]??'',undefined,true);
   html+=field('healthy','Salud','true',['true','false']);
   html+=field('sequence','Número de observación',String((s.observations[repo as Participant]??0)+1));
  }
