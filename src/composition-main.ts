@@ -118,10 +118,6 @@ function renderHistory(){
 }
 function render(){
  el('sidebar-scenario-name').textContent=doc.config.name;
- el('metric-owners').textContent=String(participants.length);
- el('metric-authority').textContent='Composition';
- el('metric-interactions').textContent=String(doc.interactions.length);
- el('metric-cursor').textContent=String(doc.cursor);
  el('composition-card').innerHTML=repoCard('composition');
  el('service-cards').innerHTML=repoCard('identity')+repoCard('accounts');
  el('landing-card').innerHTML=repoCard('landing');
