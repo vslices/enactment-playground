@@ -145,3 +145,40 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93em;col
 .composition-landing>.repo-card{border-color:#82518c}
 #action-fields{display:flex;flex-direction:column;gap:13px}
 @media(max-width:580px){.composition-services{grid-template-columns:1fr}.composition-landing{margin-top:15px}.composition-central{max-width:100%}}
+
+/* Sidebar: scenario controls own the left rail; the canvas can scroll independently. */
+.sidebar{
+ position:sticky;top:0;align-self:start;height:100vh;height:100dvh;
+ overflow-y:auto;overscroll-behavior:contain;gap:13px;
+}
+.active-scenario{align-items:flex-start;min-width:0}
+.active-scenario>span:last-child{min-width:0;overflow-wrap:anywhere;line-height:1.4}
+.sidebar-share{width:100%;min-height:38px}
+.sidebar-bottom{margin-top:auto;padding-top:14px;display:flex;flex-direction:column;gap:13px}
+.sidebar-reset{width:100%;text-align:center}
+.sidebar-protocol{margin:0;font-size:.72rem;line-height:1.5;color:var(--muted)}
+.breadcrumbs a{color:var(--muted);text-decoration:none}
+.breadcrumbs a:hover{color:var(--text);text-decoration:underline}
+.page-heading{justify-content:flex-start}
+@media(max-width:800px){
+ .sidebar{
+  display:flex;position:sticky;top:0;z-index:20;
+  height:auto;max-height:none;overflow:visible;
+  flex-direction:row;flex-wrap:wrap;align-items:center;
+  padding:10px 18px;gap:9px;border-right:0;border-bottom:1px solid var(--line);
+ }
+ .sidebar .brand{padding:0;border-bottom:0;gap:7px}
+ .sidebar .brand img{width:25px;height:25px}
+ .sidebar .brand small{display:none}
+ .sidebar .brand strong{font-size:.9rem}
+ .sidebar .side-label{display:none}
+ .sidebar .active-scenario{flex:1 1 170px;padding:8px;font-size:.71rem}
+ .sidebar .sidebar-share{width:auto;min-height:34px}
+ .sidebar .sidebar-bottom{margin:0;flex-direction:row;align-items:center;padding:0;border:0;gap:8px}
+ .sidebar .sidebar-reset{width:auto}
+ .sidebar .sidebar-protocol{display:none}
+}
+@media(max-width:560px){
+ .sidebar .active-scenario{flex-basis:130px}
+ .sidebar .sidebar-share,.sidebar .sidebar-reset{font-size:.67rem;padding:7px 8px}
+}
