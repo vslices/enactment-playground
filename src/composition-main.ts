@@ -4,6 +4,29 @@ import {append,empty,example,initialConfig,move,replay,replaceConfig,replaceInte
 import {decode,encode} from './composition-share.js';
 let doc:Document=example(),s:State=replay(doc),tab:'overview'|'raw'='overview';
 let action: {type:string;repo?:RepoId}={type:''},writeId=0;
+const seenInSession=new Set<string>();
+const introductionKey=(name:string)=>'vslices.enactment.introduction.seen.'+encodeURIComponent(name);
+function introductionSeen(name:string):boolean {
+ const key=introductionKey(name);
+ if(seenInSession.has(key))return true;
+ try{return localStorage.getItem(key)==='1'}catch{return false}
+}
+function rememberIntroduction(name:string){
+ const key=introductionKey(name);
+ seenInSession.add(key);
+ try{localStorage.setItem(key,'1')}catch{/* Storage may be disabled; session fallback still works. */}
+}
+function openIntroduction(onlyIfUnseen=false){
+ const {name,introduction}=doc.config;
+ if(onlyIfUnseen&&introductionSeen(name))return;
+ el('introduction-eyebrow').textContent=introduction.eyebrow;
+ el('introduction-title').textContent=name;
+ el('introduction-description').textContent=introduction.description;
+ rememberIntroduction(name);
+ const dialog=el<HTMLDialogElement>('introduction-dialog');
+ if(!dialog.open)dialog.showModal();
+}
+
 const el=<T extends HTMLElement=HTMLElement>(id:string):T=>document.getElementById(id) as T;
 const esc=(s:unknown):string=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const button=(repo:RepoId,type:string,label:string,primary=false)=>
@@ -20,7 +43,9 @@ async function syncUrl(){
  catch(e){if(id===writeId)message(String(e))}
 }
 function setDoc(next:Document){
+ const previousName=doc.config.name;
  doc=next;s=replay(doc);clearMessage();render();void syncUrl();
+ if(doc.config.name!==previousName)openIntroduction(true);
 }
 function send(interaction:Interaction){
  try{setDoc(append(doc,interaction))}catch(e){message(e instanceof Error?e.message:String(e))}
@@ -87,7 +112,6 @@ function renderHistory(){
  '" data-cursor="'+e.cursor+'">#'+e.cursor+' '+esc(e.text)+'</button>').join('');
 }
 function render(){
- el('scenario-title').textContent=doc.config.name;
  el('sidebar-scenario-name').textContent=doc.config.name;
  el('metric-interactions').textContent=String(doc.interactions.length);
  el('metric-cursor').textContent=String(doc.cursor);
@@ -162,6 +186,9 @@ function commitAction(){
 document.querySelectorAll('[id^="tab-"]').forEach(b=>b.addEventListener('click',()=>{
  tab=b.id==='tab-raw'?'raw':'overview';render()
 }));
+el('view-introduction').addEventListener('click',()=>openIntroduction());
+el('close-introduction').addEventListener('click',()=>el<HTMLDialogElement>('introduction-dialog').close());
+el('dismiss-introduction').addEventListener('click',()=>el<HTMLDialogElement>('introduction-dialog').close());
 el('clear').addEventListener('click',()=>setDoc(validateDocument({formatVersion:2,config:initialConfig(),interactions:[],cursor:0})));
 el('copy-link').addEventListener('click',async()=>{
  try{const hash=await encode(doc);++writeId;history.replaceState(null,'',location.pathname+location.search+hash);
@@ -203,5 +230,6 @@ async function bootstrap(){
  }
  s=replay(doc);render();
  if(!location.hash)void syncUrl();
+ openIntroduction(true);
 }
 void bootstrap();
