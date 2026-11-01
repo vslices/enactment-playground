@@ -101,3 +101,26 @@ test('only QA internal automatic policy is representable',()=>{
  assert.throws(()=>validateDocument({...d,config:{...d.config,target:'prod'}}));
  assert.throws(()=>validateDocument({...d,config:{...d.config,target:'qa-serviu'}}));
 });
+
+test('evidence profile mismatch or omitted Windows gate cannot silently authorize promotion',()=>{
+ let d=example();
+ d={...d,config:{...d.config,profiles:{...d.config.profiles,ownerLinux:'different-runner'}}};
+ d=validateDocument(d);
+ d=send(d,{type:'merge',repo:'identity',mergedTree:'tree-I1'},
+  {type:'merge',repo:'accounts',mergedTree:'tree-A1'},
+  {type:'merge',repo:'landing',mergedTree:'tree-L2'},
+  {type:'merge',repo:'composition',mergedTree:'tree-C1'},
+  {type:'evaluate'});
+ assert.notEqual(replay(d).evaluation,'eligible');
+ assert.match(replay(d).evaluationReasons.join(' '),/perfil incompatible/);
+ assert.throws(()=>validateDocument({...d,config:{...d.config,windowsRequired:false}}));
+});
+test('new evidence after eligibility invalidates authorization until reevaluated',()=>{
+ let d=approved();
+ assert.equal(replay(d).evaluation,'eligible');
+ d=append(d,{type:'test',repo:'identity',suite:'owner-linux',verdict:'failed',profile:'linux'});
+ assert.equal(replay(d).evaluation,'unknown');
+ assert.throws(()=>append(d,{type:'request-promotion'}));
+ d=append(d,{type:'evaluate'});
+ assert.equal(replay(d).evaluation,'rejected');
+});
