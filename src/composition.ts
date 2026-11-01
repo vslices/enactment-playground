@@ -7,7 +7,7 @@ export type Phase='idle'|'blocked'|'queued'|'deploying'|'failed'|'published'|'al
 export type Candidate={id:string;revision:string;tree:string;mergedTree:string|null};
 export type Evidence={repo:RepoId;revision:string;tree:string;suite:Suite;verdict:Verdict;profile:string};
 export type Attempt={phase:Phase;number:number;reason:string[]};
-export type Configuration={formatVersion:2;scenario:'landing-composition-promotion';name:string;target:'qa-internal';repos:Record<RepoId,string>;requires:Record<Participant,string>;windowsRequired:boolean};
+export type Configuration={formatVersion:2;scenario:'landing-composition-promotion';name:string;target:'qa-internal';repos:Record<RepoId,string>;requires:Record<Participant,string>;profiles:{ownerLinux:string;compositionLinux:string;compositionWindows:string};windowsRequired:boolean};
 export type Interaction=
  |{type:'candidate';repo:RepoId;revision:string;tree:string}
  |{type:'test';repo:RepoId;suite:Suite;verdict:Verdict;profile:string}
@@ -40,6 +40,7 @@ export const initialConfig=():Configuration=>({
  target:'qa-internal',
  repos:{identity:'identity-service',accounts:'account-service',landing:'landing-product',composition:'landing-composition'},
  requires:{identity:'I1',accounts:'A1',landing:'L2'},
+ profiles:{ownerLinux:'linux',compositionLinux:'linux-aspire-sql-e2e',compositionWindows:'windows-iis-serviu-qa-approx'},
  windowsRequired:true
 });
 export const empty=():State=>({
@@ -60,9 +61,13 @@ export function validateConfig(input:unknown):Configuration{
  assert(new Set(Object.values(repos)).size===4,'Nombres de repositorio duplicados');
  const requires={} as Record<Participant,string>;
  for(const id of participants)requires[id]=string(input.requires[id],'Revisión fijada '+id);
- assert(typeof input.windowsRequired==='boolean','windowsRequired debe ser boolean');
+ assert(input.windowsRequired===true,'Landing interactivo requiere regresión Windows/IIS');
+ assert(isObj(input.profiles),'Perfiles obligatorios para validar evidencia');
+ const profiles={ownerLinux:string(input.profiles.ownerLinux,'Perfil Linux propietario'),
+  compositionLinux:string(input.profiles.compositionLinux,'Perfil Linux Composition'),
+  compositionWindows:string(input.profiles.compositionWindows,'Perfil Windows/IIS')};
  return {formatVersion:2,scenario:'landing-composition-promotion',name:string(input.name,'Nombre'),target:'qa-internal',
- repos,requires,windowsRequired:input.windowsRequired};
+ repos,requires,profiles,windowsRequired:true};
 }
 export function parseInteraction(raw:unknown):Interaction{
  assert(isObj(raw),'Cada interacción debe ser un objeto');
@@ -105,6 +110,7 @@ const evidenceReasons=(s:State,c:Configuration):string[]=>{
   for(const suite of needed){
    const evidence=currentEvidence(s,id,suite);
    if(!evidence)reasons.push(c.repos[id]+': evidencia '+suite+' desconocida o no reutilizable');
+   else if(evidence.profile!==(suite==='owner-linux'?c.profiles.ownerLinux:suite==='composition-linux'?c.profiles.compositionLinux:c.profiles.compositionWindows))reasons.push(c.repos[id]+': '+suite+' perfil incompatible');
    else if(evidence.verdict!=='passed')reasons.push(c.repos[id]+': '+suite+' '+evidence.verdict);
   }
  }
@@ -143,16 +149,20 @@ export function transition(before:State,config:Configuration,input:Interaction):
  const candidate=(id:RepoId)=>{const c=s.candidates[id];assert(c,'Candidato inexistente: '+id);return c};
  switch(event.type){
  case 'candidate':
+  s.evaluation='unknown';s.evaluationReasons=['Cambió el candidato: reevaluar evidencia'];
   assert(!s.candidates[event.repo],'Candidato ya creado para '+event.repo);
   s.candidates[event.repo]={id:event.repo,revision:event.revision,tree:event.tree,mergedTree:null};
-  s.log.push(config.repos[event.repo]+'@'+event.revision+': candidato preparado');break;
+  s.log.push(config.repos[event.repo]+'@'+event.revision+': candidato preparado');reconsider(s,config);break;
  case 'test':{
+  s.evaluation='unknown';s.evaluationReasons=['Nueva evidencia: reevaluar Composition/main'];
   const c=candidate(event.repo);
   s.evidence.push({repo:event.repo,revision:c.revision,tree:c.mergedTree??c.tree,suite:event.suite,
    verdict:event.verdict,profile:event.profile});
-  s.log.push(config.repos[event.repo]+': '+event.suite+' '+event.verdict+' ('+event.profile+')');break;
+  s.log.push(config.repos[event.repo]+': '+event.suite+' '+event.verdict+' ('+event.profile+')');
+  reconsider(s,config);break;
  }
  case 'merge':{
+  s.evaluation='unknown';s.evaluationReasons=['Cambió main: reevaluar evidencia'];
   const c=candidate(event.repo);
   assert(c.mergedTree===null,'El candidato ya fue fusionado');
   if(event.repo==='composition'){
@@ -163,7 +173,8 @@ export function transition(before:State,config:Configuration,input:Interaction):
   }
   c.mergedTree=event.mergedTree;
   if(event.repo==='composition')s.compositionMain=true;
-  s.log.push(config.repos[event.repo]+': fusionado en main; árbol '+event.mergedTree);break;
+  s.log.push(config.repos[event.repo]+': fusionado en main; árbol '+event.mergedTree);
+  reconsider(s,config);break;
  }
  case 'evaluate':{
   s.evaluationReasons=evidenceReasons(s,config);
