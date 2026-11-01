@@ -27,7 +27,7 @@ export type State={
 };
 const ids:RepoId[]=['identity','accounts','landing','composition'];
 export const participants:Participant[]=['identity','accounts','landing'];
-const assert=(condition:unknown,message:string):asserts condition=>{if(!condition)throw Error(message)};
+function assert(condition:unknown,message:string):asserts condition {if(!condition)throw Error(message)}
 const isObj=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const string=(value:unknown,label:string)=>{assert(typeof value==='string'&&value.length>0&&value.length<=100,label+' inválido');return value};
 const isParticipant=(value:unknown):value is Participant=>participants.includes(value as Participant);
